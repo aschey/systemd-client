@@ -32,7 +32,13 @@ impl SystemdServiceProxyBlocking<'_> {
 impl SystemdServiceProxy<'_> {
     pub async fn get_properties(&self) -> zbus::Result<ServiceProps> {
         let exec_main_pid = self.exec_main_pid().await?;
-        let service_props = ServiceProps::builder().exec_main_pid(exec_main_pid).build();
+        let exec_main_code = self.exec_main_code().await?;
+        let exec_main_status = self.exec_main_status().await?;
+        let service_props = ServiceProps::builder()
+            .exec_main_pid(exec_main_pid)
+            .exec_main_code(exec_main_code)
+            .exec_main_status(exec_main_status)
+            .build();
 
         Ok(service_props)
     }

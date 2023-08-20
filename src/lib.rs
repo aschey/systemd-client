@@ -13,3 +13,4 @@ pub use models::*;
 pub use templates::*;
 pub use unit::*;
 pub use utils::*;
+pub use zbus::{Error, Result};

@@ -36,20 +36,24 @@ pub fn create_user_unit_configuration_file(unit_name: &str, buffer: &[u8]) -> Re
 pub fn delete_unit_configuration_file(unit_name: &str) -> Result<()> {
     let mut path = std::path::PathBuf::from(SYSTEMD_UNIT_CONFIGURATION_DIRECTORY);
     path.push(unit_name);
-    std::fs::remove_file(path.as_path())?;
+    if path.exists() {
+        std::fs::remove_file(path)?;
+    }
     Ok(())
 }
 
 pub fn delete_user_unit_configuration_file(unit_name: &str) -> Result<()> {
-    let mut config_home = dirs::config_dir().ok_or_else(|| {
+    let mut path = dirs::config_dir().ok_or_else(|| {
         std::io::Error::new(
             std::io::ErrorKind::NotFound,
             "Unable to find user config directory",
         )
     })?;
 
-    config_home.push(SYSTEMD_USER_UNIT_CONFIGURATION_DIRECTORY_SUFFIX);
-    config_home.push(unit_name);
-    std::fs::remove_file(config_home.as_path())?;
+    path.push(SYSTEMD_USER_UNIT_CONFIGURATION_DIRECTORY_SUFFIX);
+    path.push(unit_name);
+    if path.exists() {
+        std::fs::remove_file(path)?;
+    }
     Ok(())
 }

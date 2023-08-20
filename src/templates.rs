@@ -183,19 +183,19 @@ impl<'a> Display for ServiceConfiguration<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "[Service]")?;
         if let Some(working_directory) = self.working_directory {
-            writeln!(f, "WorkingDirectory={}", working_directory)?;
+            writeln!(f, "WorkingDirectory={working_directory}")?;
         }
         if let Some(user) = self.user {
-            writeln!(f, "User={}", user)?;
+            writeln!(f, "User={user}")?;
         }
         if let Some(group) = self.group {
-            writeln!(f, "Group={}", group)?;
+            writeln!(f, "Group={group}")?;
         }
         if let Some(notify_access) = &self.notify_access {
-            writeln!(f, "NotifyAccess={}", notify_access)?;
+            writeln!(f, "NotifyAccess={notify_access}")?;
         }
         for env in self.envs.iter() {
-            writeln!(f, r#"Environment="{}""#, env)?;
+            writeln!(f, r#"Environment="{env}""#)?;
         }
         writeln!(f, "ExecStart={}", self.exec_start.join(" "))?;
         writeln!(f, "Restart={}", self.restart_policy)?;
@@ -326,17 +326,9 @@ impl<'a> InstallConfiguration<'a> {
     }
 }
 
+#[derive(Default)]
 pub struct InstallConfigurationBuilder<'a> {
     pub wanted_by: Vec<&'a str>,
-}
-
-impl<'a> Default for InstallConfigurationBuilder<'a> {
-    fn default() -> Self {
-        InstallConfigurationBuilder {
-            // https://unix.stackexchange.com/questions/404667/systemd-service-what-is-multi-user-target
-            wanted_by: vec!["multi-user.target"],
-        }
-    }
 }
 
 impl<'a> InstallConfigurationBuilder<'a> {
@@ -402,5 +394,90 @@ impl<'a> ServiceUnitConfigurationBuilder<'a> {
             service,
             install,
         }
+    }
+}
+
+#[derive(Default)]
+pub struct SocketConfigurationBuilder<'a> {
+    pub listen_stream: Vec<&'a str>,
+    pub listen_datagram: Vec<&'a str>,
+    pub service: Option<&'a str>,
+    pub file_descriptor_name: Option<&'a str>,
+    pub free_bind: Option<bool>,
+    pub unit: UnitConfigurationBuilder<'a>,
+    pub install: InstallConfigurationBuilder<'a>,
+}
+
+impl<'a> SocketConfigurationBuilder<'a> {
+    pub fn listen_stream(mut self, listen_stream: &'a str) -> Self {
+        self.listen_stream.push(listen_stream);
+        self
+    }
+
+    pub fn listen_datagram(mut self, listen_datagram: &'a str) -> Self {
+        self.listen_datagram.push(listen_datagram);
+        self
+    }
+
+    pub fn service(mut self, service: &'a str) -> Self {
+        self.service = Some(service);
+        self
+    }
+
+    pub fn install(mut self, install: InstallConfigurationBuilder<'a>) -> Self {
+        self.install = install;
+        self
+    }
+
+    pub fn build(self) -> SocketConfiguration<'a> {
+        SocketConfiguration {
+            listen_stream: self.listen_stream,
+            listen_datagram: self.listen_datagram,
+            service: self.service,
+            file_descriptor_name: self.file_descriptor_name,
+            free_bind: self.free_bind,
+            unit: self.unit.build(),
+            install: self.install.build(),
+        }
+    }
+}
+
+pub struct SocketConfiguration<'a> {
+    pub listen_stream: Vec<&'a str>,
+    pub listen_datagram: Vec<&'a str>,
+    pub service: Option<&'a str>,
+    pub file_descriptor_name: Option<&'a str>,
+    pub free_bind: Option<bool>,
+    pub unit: UnitConfiguration<'a>,
+    pub install: InstallConfiguration<'a>,
+}
+
+impl<'a> SocketConfiguration<'a> {
+    pub fn builder() -> SocketConfigurationBuilder<'a> {
+        SocketConfigurationBuilder::default()
+    }
+}
+
+impl<'a> Display for SocketConfiguration<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.unit)?;
+        writeln!(f)?;
+        writeln!(f, "[Socket]")?;
+
+        for listen_stream in &self.listen_stream {
+            writeln!(f, "ListenStream={listen_stream}",)?;
+        }
+        for listen_datagram in &self.listen_datagram {
+            writeln!(f, "ListenDatagram={listen_datagram}")?;
+        }
+        if let Some(service) = self.service {
+            writeln!(f, "Service={service}")?;
+        }
+        if let Some(free_bind) = self.free_bind {
+            writeln!(f, "FreeBind={free_bind}")?;
+        }
+
+        writeln!(f)?;
+        writeln!(f, "{}", self.install)
     }
 }

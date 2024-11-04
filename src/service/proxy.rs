@@ -1,16 +1,16 @@
 use crate::{Result, ServiceProps};
-use zbus::{blocking, dbus_proxy, zvariant::OwnedObjectPath, Connection};
+use zbus::{blocking, proxy, zvariant::OwnedObjectPath, Connection};
 
-#[dbus_proxy(
+#[proxy(
     interface = "org.freedesktop.systemd1.Service",
     default_service = "org.freedesktop.systemd1"
 )]
-trait SystemdService {
-    #[dbus_proxy(property, name = "ExecMainPID")]
+pub trait SystemdService {
+    #[zbus(property, name = "ExecMainPID")]
     fn exec_main_pid(&self) -> zbus::Result<u32>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn exec_main_code(&self) -> zbus::Result<i32>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn exec_main_status(&self) -> zbus::Result<i32>;
 }
 
@@ -44,7 +44,9 @@ impl SystemdServiceProxy<'_> {
     }
 }
 
-pub async fn build_nonblock_proxy(object: OwnedObjectPath) -> Result<SystemdServiceProxy<'static>> {
+pub async fn build_nonblocking_proxy(
+    object: OwnedObjectPath,
+) -> Result<SystemdServiceProxy<'static>> {
     let connection = Connection::system().await?;
     let proxy = SystemdServiceProxy::builder(&connection)
         .path(object)?
@@ -63,7 +65,7 @@ pub fn build_blocking_proxy(
     Ok(proxy)
 }
 
-pub async fn build_nonblock_user_proxy(
+pub async fn build_nonblocking_user_proxy(
     object: OwnedObjectPath,
 ) -> Result<SystemdServiceProxy<'static>> {
     let connection = Connection::session().await?;

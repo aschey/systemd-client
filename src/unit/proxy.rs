@@ -1,23 +1,23 @@
-use zbus::{blocking, zvariant::OwnedObjectPath, Connection};
+use zbus::{blocking, proxy, zvariant::OwnedObjectPath, Connection};
 
 use crate::{Result, UnitProps};
 
-#[zbus::dbus_proxy(
+#[proxy(
     interface = "org.freedesktop.systemd1.Unit",
     default_service = "org.freedesktop.systemd1"
 )]
-trait SystemdUnit {
-    #[dbus_proxy(property)]
+pub trait SystemdUnit {
+    #[zbus(property)]
     fn id(&self) -> zbus::Result<String>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn description(&self) -> zbus::Result<String>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn load_state(&self) -> zbus::Result<String>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn active_state(&self) -> zbus::Result<String>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn sub_state(&self) -> zbus::Result<String>;
-    #[dbus_proxy(property)]
+    #[zbus(property)]
     fn unit_file_state(&self) -> zbus::Result<String>;
 }
 
@@ -61,7 +61,7 @@ impl SystemdUnitProxy<'_> {
     }
 }
 
-pub async fn build_nonblock_proxy(object: OwnedObjectPath) -> Result<SystemdUnitProxy<'static>> {
+pub async fn build_nonblocking_proxy(object: OwnedObjectPath) -> Result<SystemdUnitProxy<'static>> {
     let connection = Connection::system().await?;
     let proxy = SystemdUnitProxy::builder(&connection)
         .path(object)?
@@ -78,7 +78,7 @@ pub fn build_blocking_proxy(object: OwnedObjectPath) -> Result<SystemdUnitProxyB
     Ok(proxy)
 }
 
-pub async fn build_nonblock_user_proxy(
+pub async fn build_nonblocking_user_proxy(
     object: OwnedObjectPath,
 ) -> Result<SystemdUnitProxy<'static>> {
     let connection = Connection::session().await?;

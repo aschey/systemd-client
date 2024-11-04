@@ -12,6 +12,7 @@ Environment="BAR=bar"
 ExecStart=/bin/echo aloha
 Restart=no
 RestartSec=100ms
+Type=simple
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=

@@ -7,8 +7,8 @@ use systemd_client::{
 /*
  * Run example as superuser since we start a service
  * ```sh
- * cargo build --example start_service_nonblock
- * sudo ./target/debug/examples/start_service_nonblock
+ * cargo build --example start_service_nonblocking
+ * sudo ./target/debug/examples/start_service_nonblocking
  * ```
  */
 #[tokio::main]
@@ -22,13 +22,13 @@ async fn main() -> Result<()> {
     let svc_unit_literal = format!("{}", svc_unit);
     // create /etc/systemd/system/test.service
     create_unit_configuration_file("test.service", svc_unit_literal.as_bytes())?;
-    let client = manager::build_nonblock_proxy().await?;
+    let client = manager::build_nonblocking_proxy().await?;
     let job_path = client.start_unit("test.service", "replace").await?;
     println!("{}", job_path.as_str());
     let svc_unit_path = client.get_unit("test.service").await?;
     println!("{}", svc_unit_path.as_str());
     // verify unit state given unit path
-    let client = unit::build_nonblock_proxy(svc_unit_path).await?;
+    let client = unit::build_nonblocking_proxy(svc_unit_path).await?;
     let unit_props = client.get_properties().await?;
     println!("{:?}", unit_props);
     assert_eq!(unit_props.load_state, UnitLoadStateType::Loaded);

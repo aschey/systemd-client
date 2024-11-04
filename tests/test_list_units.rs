@@ -11,10 +11,10 @@ fn test_blocking() {
 }
 
 #[tokio::test]
-async fn test_nonblock() {
-    let client = manager::build_nonblock_proxy()
+async fn test_nonblocking() {
+    let client = manager::build_nonblocking_proxy()
         .await
-        .expect("build nonblock client failed");
+        .expect("build nonblocking client failed");
     let units = client.list_units().await.expect("list units failed");
     for unit in units {
         let unit: Unit = unit.into();

@@ -16,7 +16,10 @@ version = "0.2.1"
 dirs = "5"
 thiserror = "1"
 tracing = "0.1"
-zbus = "3"
+zbus = { version = "5", features = [
+  "tokio",
+  "blocking-api",
+], default-features = false }
 
 [dev-dependencies]
-tokio = { version = "1.32.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.41.0", features = ["macros", "rt-multi-thread"] }
